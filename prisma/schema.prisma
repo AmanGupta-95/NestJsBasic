@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  moduleFormat    = "cjs"
+}
+
+datasource db {
+  provider = "mongodb"
+}
+
+
+model Author {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  bio         String?
+  birthDate   DateTime?
+  nationality String?
+  books       Book[]    @relation("AuthorToBooks")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Genre {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  name        String      @unique
+  description String?
+  books       BookGenre[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Book {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  isbn          String?     @unique
+  author        Author      @relation("AuthorToBooks", fields: [authorId], references: [id])
+  authorId      String      @db.ObjectId
+  genres        BookGenre[]
+  publishedDate DateTime?
+  pages         Int?
+  description   String?
+  language      String      @default("English")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([authorId, title])
+}
+
+model BookGenre {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId    String   @db.ObjectId
+  genre     Genre    @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  genreId   String   @db.ObjectId
+  createdAt DateTime @default(now())
+
+  @@unique([bookId, genreId])
+}

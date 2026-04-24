@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: mongodb_nestjs_prisma
+    restart: always
+    entrypoint: [ "/bin/bash", "/docker-entrypoint-mongo.sh" ]
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_APP_DB}
+    env_file:
+      - .env
+
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-keyfile:/tmp/mongo-keyfile:ro
+      - ./docker-entrypoint.mongo.sh:/docker-entrypoint-mongo.sh:ro
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
