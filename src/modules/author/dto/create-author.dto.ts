@@ -1,8 +1,21 @@
-import { IsString, IsOptional, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsDateString,
+  IsEmail,
+  MinLength,
+} from 'class-validator';
 
 export class CreateAuthorDto {
   @IsString()
-  name: string;
+  name!: string;
+
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  @MinLength(6)
+  password!: string;
 
   @IsOptional()
   @IsString()

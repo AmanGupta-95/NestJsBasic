@@ -12,11 +12,13 @@ import {
 import { AuthorService } from './author.service';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
+import { Public } from '../auth/guards/public.decorator';
 
 @Controller('/api/authors')
 export class AuthorController {
   constructor(private readonly authorService: AuthorService) {}
 
+  @Public()
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createAuthorDto: CreateAuthorDto) {

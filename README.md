@@ -44,6 +44,85 @@ $ pnpm run start:dev
 $ pnpm run start:prod
 ```
 
+## Authentication
+
+This project uses JWT (JSON Web Token) authentication with PassportJS and bcrypt for password hashing.
+
+### Setup
+
+1. Copy `.env.example` to `.env` and set your JWT secret:
+
+   ```bash
+   JWT_SECRET=your-super-secret-jwt-key-change-in-production
+   ```
+
+2. Run database migrations if needed:
+   ```bash
+   pnpm prisma generate
+   ```
+
+### API Endpoints
+
+#### Public Endpoints (No Authentication Required)
+
+- **POST /api/authors** - Register a new author
+
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "bio": "Author bio",
+    "birthDate": "1980-01-01",
+    "nationality": "USA"
+  }
+  ```
+
+- **POST /api/auth/signin** - Sign in
+
+  ```json
+  {
+    "email": "john@example.com",
+    "password": "password123"
+  }
+  ```
+
+  Response:
+
+  ```json
+  {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "author": {
+      "id": "...",
+      "email": "john@example.com",
+      "name": "John Doe"
+    }
+  }
+  ```
+
+#### Protected Endpoints (Authentication Required)
+
+All other endpoints require a valid JWT token in the Authorization header:
+
+```
+Authorization: Bearer <your_access_token>
+```
+
+Protected routes include:
+
+- GET /api/authors
+- GET /api/authors/:id
+- PATCH /api/authors/:id
+- DELETE /api/authors/:id
+- All /api/genres routes
+- All /api/books routes (if implemented)
+
+### Testing Authentication
+
+1. Register a new author using POST /api/authors
+2. Sign in using POST /api/auth/signin to get an access token
+3. Use the access token in the Authorization header for protected routes
+
 ## Run tests
 
 ```bash
