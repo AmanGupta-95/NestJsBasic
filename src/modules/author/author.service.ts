@@ -61,7 +61,7 @@ export class AuthorService {
   async update(id: string, updateAuthorDto: UpdateAuthorDto) {
     await this.findOne(id); // Ensure author exists
 
-    return this.prisma.author.update({
+    const author = await this.prisma.author.update({
       where: { id },
       data: {
         ...updateAuthorDto,
@@ -70,6 +70,9 @@ export class AuthorService {
           : undefined,
       },
     });
+
+    const { password: _, ...result } = author;
+    return result;
   }
 
   async remove(id: string) {

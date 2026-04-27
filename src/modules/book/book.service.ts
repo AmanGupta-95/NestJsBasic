@@ -7,6 +7,9 @@ import { UpdateBookDto } from './dto/update-book.dto';
 
 @Injectable()
 export class BookService {
+  // Track cache keys and delete them all
+  private readonly cacheKeyPatterns = new Set<string>();
+
   constructor(
     private readonly prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -19,24 +22,30 @@ export class BookService {
     const parts = ['books'];
     if (authorId) parts.push(`author:${authorId}`);
     if (genreId) parts.push(`genre:${genreId}`);
-    return parts.join(':');
+    const key = parts.join(':');
+    this.cacheKeyPatterns.add(key);
+    return key;
   }
 
-  /**
-   * Clear all book-related caches
-   */
   private async clearBookCaches(): Promise<void> {
-    // Clear all cache keys that start with 'books:'
-    await this.cacheManager.del('books');
-    // Note: In production, you might want to use Redis SCAN with pattern matching
-    // to clear all keys starting with 'books:' if you have many filter combinations
+    await Promise.all(
+      Array.from(this.cacheKeyPatterns).map((key) =>
+        this.cacheManager.del(key),
+      ),
+    );
   }
 
   async create(createBookDto: CreateBookDto) {
+    const [author, genres] = await Promise.all([
+      this.prisma.author.findUnique({
+        where: { id: createBookDto.authorId },
+      }),
+      this.prisma.genre.findMany({
+        where: { id: { in: createBookDto.genreIds } },
+      }),
+    ]);
+
     // Validate author exists
-    const author = await this.prisma.author.findUnique({
-      where: { id: createBookDto.authorId },
-    });
     if (!author) {
       throw new NotFoundException(
         `Author with ID ${createBookDto.authorId} not found`,
@@ -44,9 +53,6 @@ export class BookService {
     }
 
     // Validate all genres exist
-    const genres = await this.prisma.genre.findMany({
-      where: { id: { in: createBookDto.genreIds } },
-    });
     if (genres.length !== createBookDto.genreIds.length) {
       const foundIds = genres.map((g) => g.id);
       const missingIds = createBookDto.genreIds.filter(
