@@ -14,11 +14,24 @@ services:
       MONGO_INITDB_DATABASE: ${MONGO_APP_DB}
     env_file:
       - .env
-
     volumes:
       - mongodb_data:/data/db
       - ./mongo-keyfile:/tmp/mongo-keyfile:ro
       - ./docker-entrypoint.mongo.sh:/docker-entrypoint-mongo.sh:ro
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_nestjs_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    command: redis-server --appendonly yes
 
 networks:
   app-network:
@@ -26,4 +39,6 @@ networks:
 
 volumes:
   mongodb_data:
+    driver: local
+  redis_data:
     driver: local

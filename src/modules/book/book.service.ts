@@ -1,11 +1,36 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 
 @Injectable()
 export class BookService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
+
+  /**
+   * Generate cache key based on filters
+   */
+  private getCacheKey(authorId?: string, genreId?: string): string {
+    const parts = ['books'];
+    if (authorId) parts.push(`author:${authorId}`);
+    if (genreId) parts.push(`genre:${genreId}`);
+    return parts.join(':');
+  }
+
+  /**
+   * Clear all book-related caches
+   */
+  private async clearBookCaches(): Promise<void> {
+    // Clear all cache keys that start with 'books:'
+    await this.cacheManager.del('books');
+    // Note: In production, you might want to use Redis SCAN with pattern matching
+    // to clear all keys starting with 'books:' if you have many filter combinations
+  }
 
   async create(createBookDto: CreateBookDto) {
     // Validate author exists
@@ -64,11 +89,27 @@ export class BookService {
       },
     });
 
+    // Invalidate all book list caches
+    await this.clearBookCaches();
+
     return book;
   }
 
   async findAll(authorId?: string, genreId?: string) {
-    const where: any = {};
+    // Generate cache key based on filters
+    const cacheKey = this.getCacheKey(authorId, genreId);
+
+    // Try to get from cache
+    const cachedBooks = await this.cacheManager.get(cacheKey);
+    if (cachedBooks) {
+      return cachedBooks;
+    }
+
+    // If not in cache, fetch from database
+    const where: {
+      authorId?: string;
+      genres?: { some: { genreId: string } };
+    } = {};
 
     // Apply filters with AND logic
     if (authorId) {
@@ -83,7 +124,7 @@ export class BookService {
       };
     }
 
-    return this.prisma.book.findMany({
+    const books = await this.prisma.book.findMany({
       where,
       include: {
         author: {
@@ -103,6 +144,11 @@ export class BookService {
         createdAt: 'desc',
       },
     });
+
+    // Store in cache (TTL is set globally in CacheModule config)
+    await this.cacheManager.set(cacheKey, books);
+
+    return books;
   }
 
   async findOne(id: string) {
@@ -140,7 +186,8 @@ export class BookService {
 
     // Transform the response to include totalBooks count
     const { author, genres, ...bookData } = book;
-    const { _count: authorCount, password: _, ...authorData } = author;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _count: authorCount, password: _password, ...authorData } = author;
 
     return {
       ...bookData,
@@ -227,6 +274,9 @@ export class BookService {
       },
     });
 
+    // Invalidate all book list caches
+    await this.clearBookCaches();
+
     return updated;
   }
 
@@ -234,8 +284,13 @@ export class BookService {
     // Check if book exists (will throw if not found)
     await this.findOne(id);
 
-    return this.prisma.book.delete({
+    const deleted = await this.prisma.book.delete({
       where: { id },
     });
+
+    // Invalidate all book list caches
+    await this.clearBookCaches();
+
+    return deleted;
   }
 }
