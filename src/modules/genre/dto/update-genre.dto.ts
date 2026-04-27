@@ -1,4 +1,11 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateGenreDto } from './create-genre.dto';
+import { createGenreSchema } from './create-genre.dto';
 
-export class UpdateGenreDto extends PartialType(CreateGenreDto) {}
+export const updateGenreSchema = createGenreSchema.fork(
+  ['name', 'description'],
+  (schema) => schema.optional(),
+);
+
+export interface UpdateGenreDto {
+  name?: string;
+  description?: string;
+}

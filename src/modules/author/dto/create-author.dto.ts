@@ -1,31 +1,29 @@
-import {
-  IsString,
-  IsOptional,
-  IsDateString,
-  IsEmail,
-  MinLength,
-} from 'class-validator';
+import * as Joi from 'joi';
 
-export class CreateAuthorDto {
-  @IsString()
-  name!: string;
+export const createAuthorSchema = Joi.object({
+  name: Joi.string().required().messages({
+    'any.required': 'Name is required',
+  }),
+  email: Joi.string().email().required().messages({
+    'string.email': 'Email must be a valid email address',
+    'any.required': 'Email is required',
+  }),
+  password: Joi.string().min(6).required().messages({
+    'string.min': 'Password must be at least 6 characters long',
+    'any.required': 'Password is required',
+  }),
+  bio: Joi.string().optional(),
+  birthDate: Joi.date().iso().optional().messages({
+    'date.format': 'Birth date must be a valid ISO date string',
+  }),
+  nationality: Joi.string().optional(),
+});
 
-  @IsEmail()
-  email!: string;
-
-  @IsString()
-  @MinLength(6)
-  password!: string;
-
-  @IsOptional()
-  @IsString()
+export interface CreateAuthorDto {
+  name: string;
+  email: string;
+  password: string;
   bio?: string;
-
-  @IsOptional()
-  @IsDateString()
   birthDate?: string;
-
-  @IsOptional()
-  @IsString()
   nationality?: string;
 }

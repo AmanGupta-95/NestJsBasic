@@ -1,4 +1,15 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateAuthorDto } from './create-author.dto';
+import { createAuthorSchema } from './create-author.dto';
 
-export class UpdateAuthorDto extends PartialType(CreateAuthorDto) {}
+export const updateAuthorSchema = createAuthorSchema.fork(
+  ['name', 'email', 'password', 'bio', 'birthDate', 'nationality'],
+  (schema) => schema.optional(),
+);
+
+export interface UpdateAuthorDto {
+  name?: string;
+  email?: string;
+  password?: string;
+  bio?: string;
+  birthDate?: string;
+  nationality?: string;
+}

@@ -8,10 +8,14 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  UsePipes,
 } from '@nestjs/common';
 import { GenreService } from './genre.service';
-import { CreateGenreDto } from './dto/create-genre.dto';
-import { UpdateGenreDto } from './dto/update-genre.dto';
+import { createGenreSchema } from './dto/create-genre.dto';
+import type { CreateGenreDto } from './dto/create-genre.dto';
+import { updateGenreSchema } from './dto/update-genre.dto';
+import type { UpdateGenreDto } from './dto/update-genre.dto';
+import { JoiValidationPipe } from '../../common/pipes/joi-validation.pipe';
 
 @Controller('/api/genres')
 export class GenreController {
@@ -19,6 +23,7 @@ export class GenreController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @UsePipes(new JoiValidationPipe(createGenreSchema))
   create(@Body() createGenreDto: CreateGenreDto) {
     return this.genreService.create(createGenreDto);
   }
@@ -34,6 +39,7 @@ export class GenreController {
   }
 
   @Patch(':id')
+  @UsePipes(new JoiValidationPipe(updateGenreSchema))
   update(@Param('id') id: string, @Body() updateGenreDto: UpdateGenreDto) {
     return this.genreService.update(id, updateGenreDto);
   }

@@ -1,43 +1,34 @@
-import {
-  IsString,
-  IsOptional,
-  IsDateString,
-  IsInt,
-  Min,
-  IsArray,
-  ArrayMinSize,
-} from 'class-validator';
+import * as Joi from 'joi';
 
-export class CreateBookDto {
-  @IsString()
-  title!: string;
+export const createBookSchema = Joi.object({
+  title: Joi.string().required().messages({
+    'any.required': 'Title is required',
+  }),
+  isbn: Joi.string().optional(),
+  authorId: Joi.string().required().messages({
+    'any.required': 'Author ID is required',
+  }),
+  genreIds: Joi.array().items(Joi.string()).min(1).required().messages({
+    'array.min': 'At least one genre ID is required',
+    'any.required': 'Genre IDs are required',
+  }),
+  publishedDate: Joi.date().iso().optional().messages({
+    'date.format': 'Published date must be a valid ISO date string',
+  }),
+  pages: Joi.number().integer().min(1).optional().messages({
+    'number.min': 'Pages must be at least 1',
+  }),
+  description: Joi.string().optional(),
+  language: Joi.string().optional(),
+});
 
-  @IsOptional()
-  @IsString()
+export interface CreateBookDto {
+  title: string;
   isbn?: string;
-
-  @IsString()
-  authorId!: string;
-
-  @IsArray()
-  @ArrayMinSize(1)
-  @IsString({ each: true })
-  genreIds!: string[];
-
-  @IsOptional()
-  @IsDateString()
+  authorId: string;
+  genreIds: string[];
   publishedDate?: string;
-
-  @IsOptional()
-  @IsInt()
-  @Min(1)
   pages?: number;
-
-  @IsOptional()
-  @IsString()
   description?: string;
-
-  @IsOptional()
-  @IsString()
   language?: string;
 }
