@@ -18,7 +18,7 @@ import { updateBookSchema } from './dto/update-book.dto';
 import type { UpdateBookDto } from './dto/update-book.dto';
 import { JoiValidationPipe } from '../../common/pipes/joi-validation.pipe';
 
-@Controller('/api/books')
+@Controller('/books')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 

@@ -17,7 +17,7 @@ import { updateGenreSchema } from './dto/update-genre.dto';
 import type { UpdateGenreDto } from './dto/update-genre.dto';
 import { JoiValidationPipe } from '../../common/pipes/joi-validation.pipe';
 
-@Controller('/api/genres')
+@Controller('/genres')
 export class GenreController {
   constructor(private readonly genreService: GenreService) {}
 

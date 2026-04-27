@@ -5,7 +5,7 @@ import { Public } from './guards/public.decorator';
 import { signInSchema } from './dto/signin.dto';
 import { JoiValidationPipe } from '../../common/pipes/joi-validation.pipe';
 
-@Controller('/api/auth')
+@Controller('/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

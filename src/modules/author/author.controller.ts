@@ -18,7 +18,7 @@ import type { UpdateAuthorDto } from './dto/update-author.dto';
 import { Public } from '../auth/guards/public.decorator';
 import { JoiValidationPipe } from '../../common/pipes/joi-validation.pipe';
 
-@Controller('/api/authors')
+@Controller('/authors')
 export class AuthorController {
   constructor(private readonly authorService: AuthorService) {}
 
