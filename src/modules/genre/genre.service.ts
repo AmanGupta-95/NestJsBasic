@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class GenreService {
@@ -18,7 +19,10 @@ export class GenreService {
         data: createGenreDto,
       });
     } catch (error) {
-      if (error.code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException(
           `Genre with name "${createGenreDto.name}" already exists`,
         );
@@ -67,7 +71,10 @@ export class GenreService {
         data: updateGenreDto,
       });
     } catch (error) {
-      if (error.code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException(
           `Genre with name "${updateGenreDto.name}" already exists`,
         );
