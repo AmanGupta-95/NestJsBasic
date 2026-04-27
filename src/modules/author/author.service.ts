@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
@@ -70,6 +74,17 @@ export class AuthorService {
 
   async remove(id: string) {
     await this.findOne(id); // Ensure author exists
+
+    // Check if author has books
+    const booksCount = await this.prisma.book.count({
+      where: { authorId: id },
+    });
+
+    if (booksCount > 0) {
+      throw new BadRequestException(
+        `Cannot delete author. This author has ${booksCount} book(s) assigned. Please delete or reassign the books first.`,
+      );
+    }
 
     return this.prisma.author.delete({
       where: { id },

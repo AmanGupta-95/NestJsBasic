@@ -5,11 +5,12 @@ import { AppService } from './app.service';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { AuthorModule } from './modules/author/author.module';
 import { GenreModule } from './modules/genre/genre.module';
+import { BookModule } from './modules/book/book.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Module({
-  imports: [PrismaModule, AuthModule, AuthorModule, GenreModule],
+  imports: [PrismaModule, AuthModule, AuthorModule, GenreModule, BookModule],
   controllers: [AppController],
   providers: [
     AppService,
